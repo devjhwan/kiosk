@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">motel_kiosk</string>
+    <string name="room101">101호</string>
+    <string name="room102">102호</string>
+    <string name="room103">103호</string>
+    <string name="room104">104호</string>
+    <string name="room105">105호</string>
+    <string name="room201">201호</string>
+    <string name="room202">202호</string>
+    <string name="room203">203호</string>
+    <string name="room204">204호</string>
+    <string name="room205">205호</string>
+    <string name="room301">301호</string>
+    <string name="room302">302호</string>
+    <string name="room303">303호</string>
+    <string name="room304">304호</string>
+    <string name="room305">305호</string>
+    <string name="room401">401호</string>
+    <string name="room402">402호</string>
+    <string name="room403">403호</string>
+    <string name="room404">404호</string>
+    <string name="room405">405호</string>
+    <string name="room501">501호</string>
+    <string name="room502">502호</string>
+    <string name="room503">503호</string>
+    <string name="room504">504호</string>
+    <string name="room505">505호</string>
 </resources>

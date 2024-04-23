@@ -4,6 +4,7 @@ import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
@@ -12,17 +13,25 @@ import com.example.motel_kiosk.databinding.ReserveActivityBinding
 
 
 class MainActivity : ComponentActivity() {
-    private lateinit var binding: ReserveActivityBinding
+    private val binding: ReserveActivityBinding by lazy {
+        ReserveActivityBinding.inflate(layoutInflater)
+    }
+
+    private val dbHelper: SQLiteHelper by lazy {
+        SQLiteHelper.getInstance(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ReserveActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val gridLayout = binding.reserveGrid
-        val buttonStates = Array(gridLayout.rowCount) { Array(gridLayout.columnCount) { false } }
+        val buttonStates = dbHelper.getRoomStates()
 
-        setGridLayoutListener(gridLayout, buttonStates);
+        Log.i("Db init", dbHelper.getRoomReservationInfo())
+
+        setGridLayoutListener(gridLayout, buttonStates)
+        updateButtonColors(gridLayout, buttonStates)
     }
 
     private fun setGridLayoutListener(gridLayout: GridLayout,
@@ -31,7 +40,24 @@ class MainActivity : ComponentActivity() {
             for (col in 0 until gridLayout.columnCount) {
                 val view = gridLayout.getChildAt(row * gridLayout.rowCount + col)
                 if (view is Button)
-                    insertButtonClickListener(view, buttonStates, row, col);
+                    insertButtonClickListener(view, buttonStates, row, col)
+            }
+        }
+    }
+
+    private fun updateButtonColors(gridLayout: GridLayout,
+                                   buttonStates: Array<Array<Boolean>>) {
+        for (row in 0 until gridLayout.rowCount) {
+            for (col in 0 until gridLayout.columnCount) {
+                val view = gridLayout.getChildAt(row * gridLayout.rowCount + col)
+                if (view is Button)
+                {
+                    @RequiresApi(Build.VERSION_CODES.Q)
+                    if (buttonStates[row][col]) // 0xDC4242
+                        changeButtonBackgroundColor(view, R.color.full_red)
+                    else // 0x00BCD4
+                        changeButtonBackgroundColor(view, R.color.empty_blue)
+                }
             }
         }
     }
@@ -42,18 +68,30 @@ class MainActivity : ComponentActivity() {
         button.setOnClickListener {
             @RequiresApi(Build.VERSION_CODES.Q)
             if (!buttonStates[row][col]) // 0xDC4242
-                button.background.colorFilter =
-                    BlendModeColorFilter(
-                        resources.getColor(R.color.full_red, null),
-                        BlendMode.MULTIPLY
-                    )
+                changeButtonBackgroundColor(button, R.color.full_red)
             else // 0x00BCD4
-                button.background.colorFilter =
-                    BlendModeColorFilter(
-                        resources.getColor(R.color.empty_blue, null),
-                        BlendMode.MULTIPLY
-                    )
+                changeButtonBackgroundColor(button, R.color.empty_blue)
             buttonStates[row][col] = !buttonStates[row][col]
+            dbHelper.updateData(
+                button.text.dropLast(1).toString(),
+                button.text.toString(),
+                buttonStates[row][col]
+            )
+            Log.i("Db update", dbHelper.getRoomReservationInfo())
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun changeButtonBackgroundColor(button: Button, color: Int)
+    {
+        button.background.colorFilter =
+            BlendModeColorFilter(
+                resources.getColor(color, null), BlendMode.MULTIPLY
+            )
+    }
+
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
     }
 }
